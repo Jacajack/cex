@@ -1,0 +1,36 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "cex.h"
+
+int main( )
+{
+	struct cex_stack st;
+	if ( cex_stack_init_alloc( &st, 256 ) )
+		abort( ); 
+		
+	cex_try(&st)
+	{
+		printf( "Before throw!\n" );
+		
+		
+		cex_throw( &st, CEX_STRING, "asd" );
+		//union cex_payload payload = {.str="error!"};
+		// cex_throw( &st, payload, CEX_STRING );
+		
+		
+		printf( "After throw!\n" );
+	}
+	cex_catch(&st)
+	{
+		printf( "In catch block\n" );
+		
+		cex_catch_( &st, CEX_STRING )
+		{
+			printf( "Caught string\n" );
+		}
+	}
+	cex_end(&st)
+	
+	printf( "After all...\n" );
+	return 0;
+}
