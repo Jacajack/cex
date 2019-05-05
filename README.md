@@ -5,7 +5,7 @@ It provides a set of preprocessor macros imitating C++ `try`, `throw` and `catch
 ### Usage
 A global variable of `struct cex_status` shall be defined by user. On program startup, it must be initialized either with `cex_init_alloc()` or `cex_init_fixed()` depending on whether the user wants `malloc()` to be used in his application. The status structure has to be cleaned up with `cex_delete()` at the end of runtime.
 
-An example of try-catch block:
+Example use:
 ```c
 // These can handle up to 256 nested try blocks
 struct cex_status CEX;
