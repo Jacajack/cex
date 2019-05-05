@@ -95,15 +95,15 @@ extern void cex_generic_throw( struct cex_status *st, union cex_payload payload,
 extern void cex_propagate( struct cex_status *st );
 
 // Throw
-#define cex_throw(st, T, value) { union cex_payload p = {.T##_VAL = value}; cex_generic_throw( (st), p, (T) ); }
+#define cex_throw(st, T, value) { union cex_payload p = {.T##_VAL = value}; cex_generic_throw( &(st), p, (T) ); }
 
 // Try and catch blocks
-#define cex_try_block(st)         cex_push((st)); if ( !setjmp(cex_top((st))->jbuf) ) {
-#define cex_catch_block(st) cex_pop((st)); } else for( cex_pop((st)); !(st)->ex_caught; cex_propagate((st)) )
+#define cex_try_block(st)       cex_push( &(st) ); if ( !setjmp( cex_top( &(st) )->jbuf ) ) {
+#define cex_catch_block(st)     cex_pop( &(st) ); } else for ( cex_pop( &(st) ); !(st).ex_caught; cex_propagate( &(st) ) )
 
 // Catchers
-#define cex_catch(st, T) for( T##_TYPE cex_what; !(st)->ex_caught && (st)->ex_type == (T) && ( cex_what = (st)->ex_payload. T##_VAL, (st)->ex_caught = 1, 1 ); )
-#define cex_catch_all(st) if ( !(st)->ex_caught && ( ( (st)->ex_caught = 1 ), 1 ) )
+#define cex_catch(st, T)        for ( T##_TYPE cex_what; !(st).ex_caught && (st).ex_type == (T) && ( cex_what = (st).ex_payload. T##_VAL, (st).ex_caught = 1, 1 ); )
+#define cex_catch_all(st)       if ( !(st).ex_caught && ( ( (st).ex_caught = 1 ), 1 ) )
 
 #ifdef __cplusplus
 }
