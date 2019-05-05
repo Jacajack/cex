@@ -102,7 +102,7 @@ extern void cex_propagate( struct cex_status *st );
 #define cex_catch_block(st)     cex_pop( &(st) ); } else for ( cex_pop( &(st) ); !(st).ex_caught; cex_propagate( &(st) ) )
 
 // Catchers
-#define cex_catch(st, T)        for ( T##_TYPE cex_what; !(st).ex_caught && (st).ex_type == (T) && ( cex_what = (st).ex_payload. T##_VAL, (st).ex_caught = 1, 1 ); )
+#define cex_catch_case(st, T)   for ( T##_TYPE cex_what; !(st).ex_caught && (st).ex_type == (T) && ( cex_what = (st).ex_payload. T##_VAL, (st).ex_caught = 1, 1 ); )
 #define cex_catch_all(st)       if ( !(st).ex_caught && ( ( (st).ex_caught = 1 ), 1 ) )
 
 #ifdef __cplusplus
