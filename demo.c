@@ -20,16 +20,15 @@ int main( )
 		
 		printf( "After throw!\n" );
 	}
-	cex_catch(&st)
+	cex_catch_block(&st)
 	{
 		printf( "In catch block\n" );
 		
-		cex_catch_( &st, CEX_STRING )
+		cex_catch( &st, CEX_STRING )
 		{
-			printf( "Caught string\n" );
+			printf( "Caught string %s\n", cex_ex );
 		}
 	}
-	cex_end(&st)
 	
 	printf( "After all...\n" );
 	return 0;

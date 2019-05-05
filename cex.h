@@ -60,12 +60,10 @@ extern void cex_propagate( struct cex_stack *st );
 
 // Macros for user
 #define cex_try(st)     cex_push((st)); if ( !setjmp(cex_top((st))->jbuf) ) {
-#define cex_catch(st)   cex_pop((st)); } else {
-#define cex_end(st)     cex_propagate((st)); }
-
+#define cex_catch_block(st) cex_pop((st)); } else for( ;; cex_propagate((st)) )
 #define cex_throw(st, T, value) { union cex_payload p = {.T##_VAL = value}; cex_generic_throw( st, p, T ); }
 
-#define cex_catch_(st, T) for(T##_TYPE cex_ex; cex_top((st))->type==(T) && !cex_top((st))->caught && (cex_ex=cex_top((st))->payload. T##_VAL, cex_top((st))->caught=1, 1) ; )
+#define cex_catch(st, T) for(T##_TYPE cex_ex; cex_top((st))->type==(T) && !cex_top((st))->caught && (cex_ex=cex_top((st))->payload. T##_VAL, cex_top((st))->caught=1, 1) ; )
 
 #ifdef __cplusplus
 }
