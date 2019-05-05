@@ -50,7 +50,7 @@ void cex_init_fixed( struct cex_status *st, struct cex_jmp_buf_wrapper *arr, siz
 void cex_delete( struct cex_status *st )
 {
 	if ( st->stack_allocated ) free( st->bp );
-	st->bp = st->bp = NULL;
+	st->bp = st->sp = NULL;
 }
 
 /**
