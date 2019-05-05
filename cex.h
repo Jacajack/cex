@@ -18,12 +18,14 @@ typedef void       *CEX_VOID_PTR_TYPE;
 /**
 	\brief Stores one of many possible exception payloads
 */
+#define CEX_DECLARE_PAYLOAD(T) T##_TYPE T##_VAL;
 union cex_payload
 {
-	CEX_STRING_TYPE   CEX_STRING_VAL;
-	CEX_VOID_PTR_TYPE CEX_VOID_PTR_VAL;
-	CEX_INT_TYPE      CEX_INT_VAL;
+	CEX_DECLARE_PAYLOAD( CEX_STRING );
+	CEX_DECLARE_PAYLOAD( CEX_INT );
+	CEX_DECLARE_PAYLOAD( CEX_VOID_PTR );
 };
+#undef CEX_DECLARE_PAYLOAD
 
 /**
 	\brief Exception payload types
