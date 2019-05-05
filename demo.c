@@ -5,11 +5,12 @@
 struct cex_status CEX;
 
 // Macros to make life easier
-#define try cex_try_block(CEX)
-#define catch cex_catch_block(CEX)
-#define catch_case(T) cex_catch_case(CEX, T)
-#define catch_all cex_catch_all(CEX)
-#define throw(T, value) cex_throw(CEX, T, (value)) 
+#define GLOBAL_CEX      CEX
+#define try             cex_try_block(GLOBAL_CEX)
+#define catch           cex_catch_block(GLOBAL_CEX)
+#define catch_case(T)   cex_catch_case(GLOBAL_CEX, T)
+#define catch_all       cex_catch_all(GLOBAL_CEX)
+#define throw(T, value) cex_throw(GLOBAL_CEX, T, (value)) 
 
 
 int main( )
@@ -44,6 +45,8 @@ int main( )
 			printf( "Caught something\n" );
 		}
 	}
+
+	cex_delete( &CEX );
 
 	return 0;
 }
