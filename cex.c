@@ -3,87 +3,134 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void cex_abort( )
+/**
+	\brief Calls error handling function provided by the user or abort() if there's no such. 
+*/
+static void cex_abort( struct cex_status *st, enum cex_error err )
 {
-	abort( );
+	if ( st->error_callback != NULL )
+		st->error_callback( st, err );
+	else
+		abort( );
 }
 
 /**
-	\brief Initialize exception stack in memory chunck allocated with malloc().
+	\brief Initialize CEX status and jump location stack in memory chunck allocated with malloc().
 	
 	Stack memory shall be later freed with cex_stack_destroy()
 */
-int cex_stack_init_alloc( struct cex_stack *st, size_t size )
+int cex_init_alloc( struct cex_status *st, size_t size )
 {
-	st->max_size = size;
-	st->bp = malloc( sizeof( struct cex_exception ) * size );
+	st->stack_allocated = 1;
+	st->max_stack_size = size;
+	st->bp = malloc( sizeof( struct cex_jmp_buf_wrapper ) * size );
 	st->sp = st->bp;
+	
+	st->error_callback = NULL;
 	
 	return st->bp == NULL;
 }
 
 /**
-	\brief Initialize exception stack based on fixed-size array
-	
-	After initializing with this function cex_stack_destroy() shall *not* be called
+	\brief Initialize CEX status and jump location stack based on fixed-size array
 */
-void cex_stack_init_fixed( struct cex_stack *st, struct cex_exception *arr, size_t size )
+void cex_init_fixed( struct cex_status *st, struct cex_jmp_buf_wrapper *arr, size_t size )
 {
-	st->max_size = size;
+	st->stack_allocated = 0;
+	st->max_stack_size = size;
 	st->bp = arr;
 	st->sp = st->bp;
+	
+	st->error_callback = NULL;
 }
 
-void cex_stack_delete( struct cex_stack *st )
+/**
+	\brief Cleans up a status, frees memory if needed
+*/
+void cex_delete( struct cex_status *st )
 {
-	free( st->bp );
+	if ( st->stack_allocated ) free( st->bp );
 	st->bp = st->bp = NULL;
 }
 
+/**
+	\brief Adds new jump location to the stack
+	
+	The jump buffer has to be initialized with setjmp()	
 
-
-void cex_push( struct cex_stack *st )
+	Calls cex_abort() with CEX_STACK_OVERFLOW if stack is full
+*/
+void cex_push( struct cex_status *st )
 {	
-	if ( ++st->sp - st->bp == st->max_size )
-		cex_abort( );
+	if ( ++st->sp - st->bp == st->max_stack_size )
+		cex_abort( st, CEX_STACK_OVERFLOW );
 }
 
-struct cex_exception *cex_top( struct cex_stack *st )
+/**
+	\brief Returns pointer to the top jump location
+	
+	Calls cex_abort() with CEX_STACK_UNDERFLOW if stack is empty
+*/
+struct cex_jmp_buf_wrapper *cex_top( struct cex_status *st )
 {
 	if ( st->sp == st->bp )
-		cex_abort( );
+		cex_abort( st, CEX_STACK_UNDERFLOW );
 	return st->sp;
 }
 
-size_t cex_stack_size( struct cex_stack *st )
+/**
+	\brief Returns stack size
+*/
+size_t cex_stack_size( struct cex_status *st )
 {
 	return st->sp - st->bp;
 }
 
-void cex_pop( struct cex_stack *st )
+/**
+	\brief Pops one jump location from the stack and returns it
+	
+	Calls cex_abort() with CEX_STACK_UNDERFLOW if stack is empty
+*/
+struct cex_jmp_buf_wrapper cex_pop( struct cex_status *st )
 {
-	if ( st->sp-- == st->bp )
-		cex_abort( );
+	if ( st->sp == st->bp )
+		cex_abort( st, CEX_STACK_UNDERFLOW );
+	return *st->sp--;
 }
 
-void cex_generic_throw( struct cex_stack *st, union cex_payload payload, enum cex_type type )
+/**
+	\brief Generic throw function
+	
+	Throws an exception with certain type and payload.
+*/
+void cex_generic_throw( struct cex_status *st, union cex_payload payload, enum cex_type type )
 {
-	struct cex_exception *ex = cex_top( st );
-	ex->payload = payload;
-	ex->type = type;
-	ex->caught = 0;
-	longjmp( ex->jbuf, 1 );
+	struct cex_jmp_buf_wrapper *jbufw = cex_top( st );
+	
+	st->ex_payload = payload;
+	st->ex_type = type;
+	st->ex_caught = 0;
+	longjmp( jbufw->jbuf, 1 );
 }
 
-void cex_propagate( struct cex_stack *st )
+/**
+	\brief Propagates exception.
+	
+	If the jump location stack is empty calls cex_abort() with CEX_UNCAUGHT
+	
+	Has effect only if the current exception is uncaught
+*/
+void cex_propagate( struct cex_status *st )
 {
-	struct cex_exception bak = *cex_top( st );
-	cex_pop( st );
-
-	if ( !bak.caught )
-	{	
-		struct cex_exception *ex = cex_top( st );
-		cex_generic_throw( st, ex->payload, ex->type );
+	if ( !st->ex_caught )
+	{
+		if ( cex_stack_size( st ) != 0 )
+		{	
+			struct cex_jmp_buf_wrapper *jbufw = cex_top( st );
+			longjmp( jbufw->jbuf, 1 );
+		}
+		else
+			cex_abort( st, CEX_UNCAUGHT );
 	}
 }
 
