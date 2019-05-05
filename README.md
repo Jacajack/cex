@@ -51,7 +51,7 @@ cex_catch_block( CEX )
 cex_delete( &CEX );
 ```
 
-This set of macros can make syntax much readable:
+This set of macros can make syntax much more readable:
 ```c
 #define GLOBAL_CEX      CEX
 #define try             cex_try_block(GLOBAL_CEX)
