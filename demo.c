@@ -2,40 +2,48 @@
 #include <stdlib.h>
 #include "cex.h"
 
-#define try cex_try(&st)
-#define catch cex_catch_block(&st)
-#define catch_case(T) cex_catch(&st, T)
+struct cex_status CEX;
+
+// Macros to make life easier
+#define try cex_try_block(CEX)
+#define catch cex_catch_block(CEX)
+#define catch_case(T) cex_catch_case(CEX, T)
+#define catch_all cex_catch_all(CEX)
+#define throw(T, value) cex_throw(CEX, T, (value)) 
+
 
 int main( )
 {
-	struct cex_stack st;
-	if ( cex_stack_init_alloc( &st, 256 ) )
-		abort( ); 
-		
+	// Initialize CEX
+	if ( cex_init_alloc( &CEX, 256 ) )
+		abort( );
+	
 	try
 	{
-		printf( "Before throw!\n" );
+		printf( "in try{}\n" );
 		
+		// Something thrown here
+		throw( CEX_STRING, "'Exception description'" );
+		throw( CEX_INT, 17 );
 		
-		cex_throw( &st, CEX_STRING, "asd" );
-		//union cex_payload payload = {.str="error!"};
-		// cex_throw( &st, payload, CEX_STRING );
-		
-		
-		printf( "After throw!\n" );
+		// Never reached
+		printf( "after throw\n" );
 	}
 	catch
-	{
-		printf( "In catch block\n" );
-		
+	{	
+		// Handles only strings
 		catch_case( CEX_STRING )
 		{
-			printf( "Caught string %s\n", cex_ex );
+			// cex_what contains payload in catch cases
+			printf( "Caught string: %s\n", cex_what );
 		}
 		
-		printf( "Stack size: %d\n", (int) cex_stack_size( &st ) );
+		// Handles all cases
+		catch_all
+		{
+			printf( "Caught something\n" );
+		}
 	}
-	
-	printf( "After all...\n" );
+
 	return 0;
 }
