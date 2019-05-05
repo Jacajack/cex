@@ -51,10 +51,11 @@ struct cex_jmp_buf_wrapper
 */
 enum cex_error
 {
-	CEX_NO_ERROR = 0,
-	CEX_STACK_UNDERFLOW,
-	CEX_STACK_OVERFLOW,
-	CEX_UNCAUGHT
+	CEX_NO_ERROR = 0,    //!< Indicates no error
+	CEX_ALLOC_ERROR,     //!< Memory allocation error
+	CEX_STACK_UNDERFLOW, //!< pop/top called on empty jump stack
+	CEX_STACK_OVERFLOW,  //!< Jump location stack overlflow
+	CEX_UNCAUGHT         //!< Exception uncaught and jump stack is empty
 };
 
 /**
@@ -76,14 +77,14 @@ struct cex_status
 	enum cex_type     ex_type;
 	unsigned char     ex_caught;
 	
-	//! Error handler function
+	//! Error handler function - shall be set after init by user
 	void ( *error_callback )( struct cex_status *st, enum cex_error err );
 };
 
 
 // CEX status management
-extern int cex_init_alloc( struct cex_status *st, size_t size );
-extern void cex_init_fixed( struct cex_status *st, struct cex_jmp_buf_wrapper *array, size_t size );
+extern enum cex_error cex_init_alloc( struct cex_status *st, size_t size );
+extern enum cex_error cex_init_fixed( struct cex_status *st, struct cex_jmp_buf_wrapper *array, size_t size );
 extern void cex_delete( struct cex_status *st );
 
 // Jump location stack access

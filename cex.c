@@ -19,7 +19,7 @@ static void cex_abort( struct cex_status *st, enum cex_error err )
 	
 	Stack memory shall be later freed with cex_stack_destroy()
 */
-int cex_init_alloc( struct cex_status *st, size_t size )
+enum cex_error cex_init_alloc( struct cex_status *st, size_t size )
 {
 	st->stack_allocated = 1;
 	st->max_stack_size = size;
@@ -27,14 +27,13 @@ int cex_init_alloc( struct cex_status *st, size_t size )
 	st->sp = st->bp;
 	
 	st->error_callback = NULL;
-	
-	return st->bp == NULL;
+	return st->bp == NULL ? CEX_ALLOC_ERROR : CEX_NO_ERROR;
 }
 
 /**
 	\brief Initialize CEX status and jump location stack based on fixed-size array
 */
-void cex_init_fixed( struct cex_status *st, struct cex_jmp_buf_wrapper *arr, size_t size )
+enum cex_error cex_init_fixed( struct cex_status *st, struct cex_jmp_buf_wrapper *arr, size_t size )
 {
 	st->stack_allocated = 0;
 	st->max_stack_size = size;
@@ -42,6 +41,7 @@ void cex_init_fixed( struct cex_status *st, struct cex_jmp_buf_wrapper *arr, siz
 	st->sp = st->bp;
 	
 	st->error_callback = NULL;
+	return CEX_NO_ERROR;
 }
 
 /**
