@@ -47,6 +47,11 @@ void error_callback( struct cex_status *st, enum cex_error err )
 	abort( );
 }
 
+void foo( )
+{
+	throw( CEX_STRING, "throw from foo()" );
+}
+
 int main( )
 {
 	// Initialize CEX
@@ -92,6 +97,15 @@ int main( )
 		{
 			printf( "caught int: %d\n", cex_what );
 		}
+	}
+	
+	try
+	{
+		foo( );
+	}
+	catch catch_case( CEX_STRING )
+	{
+		printf( "caught string down here: %s\n", cex_what );
 	}
 	
 	// Cleanup
