@@ -2,13 +2,17 @@
 #include <stdlib.h>
 #include "cex.h"
 
+#define try cex_try(&st)
+#define catch cex_catch_block(&st)
+#define catch_case(T) cex_catch(&st, T)
+
 int main( )
 {
 	struct cex_stack st;
 	if ( cex_stack_init_alloc( &st, 256 ) )
 		abort( ); 
 		
-	cex_try(&st)
+	try
 	{
 		printf( "Before throw!\n" );
 		
@@ -20,14 +24,16 @@ int main( )
 		
 		printf( "After throw!\n" );
 	}
-	cex_catch_block(&st)
+	catch
 	{
 		printf( "In catch block\n" );
 		
-		cex_catch( &st, CEX_STRING )
+		catch_case( CEX_STRING )
 		{
 			printf( "Caught string %s\n", cex_ex );
 		}
+		
+		printf( "Stack size: %d\n", (int) cex_stack_size( &st ) );
 	}
 	
 	printf( "After all...\n" );

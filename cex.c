@@ -55,6 +55,11 @@ struct cex_exception *cex_top( struct cex_stack *st )
 	return st->sp;
 }
 
+size_t cex_stack_size( struct cex_stack *st )
+{
+	return st->sp - st->bp;
+}
+
 void cex_pop( struct cex_stack *st )
 {
 	if ( st->sp-- == st->bp )

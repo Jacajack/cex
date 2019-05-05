@@ -52,6 +52,7 @@ extern void cex_stack_delete( struct cex_stack *st );
 // Exception stack access
 extern void cex_push( struct cex_stack *st );
 extern struct cex_exception *cex_top( struct cex_stack *st );
+extern size_t cex_stack_size( struct cex_stack *st );
 extern void cex_pop( struct cex_stack *st );
 
 // Propagates uncaught exception down the stack. Calls terminate() eventually.
@@ -60,10 +61,12 @@ extern void cex_propagate( struct cex_stack *st );
 
 // Macros for user
 #define cex_try(st)     cex_push((st)); if ( !setjmp(cex_top((st))->jbuf) ) {
-#define cex_catch_block(st) cex_pop((st)); } else for( ;; cex_propagate((st)) )
-#define cex_throw(st, T, value) { union cex_payload p = {.T##_VAL = value}; cex_generic_throw( st, p, T ); }
+#define cex_catch_block(st) cex_pop((st)); } else for( ;cex_stack_size((st)); cex_propagate((st)) )
+#define cex_throw(st, T, value) { union cex_payload p = {.T##_VAL = value}; cex_generic_throw( (st), p, (T) ); }
 
-#define cex_catch(st, T) for(T##_TYPE cex_ex; cex_top((st))->type==(T) && !cex_top((st))->caught && (cex_ex=cex_top((st))->payload. T##_VAL, cex_top((st))->caught=1, 1) ; )
+#define cex_catch(st, T) for( T##_TYPE cex_ex; cex_top((st))->type == (T) && !cex_top((st))->caught && ( cex_ex=cex_top((st))->payload. T##_VAL, cex_top((st))->caught = 1, 1 ); )
+
+#define cex_catch_block_sw(st) switch(cex_top((st))->type){default:cex_propagate((st));break
 
 #ifdef __cplusplus
 }
